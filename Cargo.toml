@@ -1,0 +1,18 @@
+[package]
+name = "model_search_phylo"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.3.11", features = ["derive"] }
+log = "0.4.19"
+ftail = "0.2.0"
+phylo = { git = "https://github.com/MattesMrzik/rust-phylo.git", branch = "phylo_for_jati" }
+anyhow = "1.0.86"
+ntimestamp = "1.0.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[[bin]]
+name = "model-search-phylo"
+path = "src/main.rs"
