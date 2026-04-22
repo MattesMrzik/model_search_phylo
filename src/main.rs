@@ -24,12 +24,13 @@ use crate::cli::{Cli, Config, GapHandling as Gap, SubstModelId};
 
 macro_rules! extract_result {
     ($res:expr) => {{
-        let cost = &$res.cost;
+        let res = $res;
+        let cost = &res.cost;
         let params: Vec<f64> = (0..cost.param_count()).map(|i| cost.param(i)).collect();
         let freqs = cost.freqs().clone();
         (
             ModelSearchCost::cost(cost),
-            $res.final_cost,
+            res.final_cost,
             params,
             freqs,
             cost.tree().clone(),
@@ -69,8 +70,7 @@ macro_rules! tkf91_optimisation {
     ($model:ty, $cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
             TKF91CostBuilder::new(
-                $cfg.params[0],
-                $cfg.params[1],
+                &$cfg.params[..2],
                 SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[2..].to_vec()),
                 $info,
             )
@@ -86,9 +86,7 @@ macro_rules! tkf92_optimisation {
     ($model:ty, $cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
             TKF92CostBuilder::new(
-                $cfg.params[0],
-                $cfg.params[1],
-                $cfg.params[2],
+                &$cfg.params[..3],
                 SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[3..].to_vec()),
                 $info,
             )
@@ -118,7 +116,7 @@ macro_rules! subst_optimisation {
 macro_rules! tkf91_indel_optimisation {
     ($cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            TKF91IndelCostBuilder::new($cfg.params[0], $cfg.params[1], $info).build()?,
+            TKF91IndelCostBuilder::new(&$cfg.params, $info).build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
@@ -129,8 +127,7 @@ macro_rules! tkf91_indel_optimisation {
 macro_rules! tkf92_indel_optimisation {
     ($cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            TKF92IndelCostBuilder::new($cfg.params[0], $cfg.params[1], $cfg.params[2], $info)
-                .build()?,
+            TKF92IndelCostBuilder::new(&$cfg.params, $info).build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
