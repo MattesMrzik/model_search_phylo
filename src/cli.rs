@@ -150,7 +150,7 @@ impl Config {
         std::fs::create_dir_all(&out_fldr).context("Failed to create output directory")?;
 
         Ftail::new()
-            .datetime_format("%H:%M:%S")
+            .datetime_format("%D-%H:%M:%S")
             .console(cli.log_level)
             .single_file(
                 out_fldr.join(format!("{run_id}.log")).to_str().unwrap(),
