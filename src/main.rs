@@ -67,35 +67,37 @@ macro_rules! pip_optimisation {
 }
 
 macro_rules! tkf91_optimisation {
-    ($model:ty, $cfg:expr, $info:expr) => {
+    ($model:ty, $cfg:expr, $info:expr) => {{
+        let split = 2.min($cfg.params.len());
+
+        let core = &$cfg.params[..split];
+        let rest = &$cfg.params[split..];
+
         ModelOptimiser::with_stop_condition(
-            TKF91CostBuilder::new(
-                &$cfg.params[..2],
-                SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[2..].to_vec()),
-                $info,
-            )
-            .build()?,
+            TKF91CostBuilder::new(core, SubstModel::<$model>::new(&$cfg.freqs, rest), $info)
+                .build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
         .run()?
-    };
+    }};
 }
 
 macro_rules! tkf92_optimisation {
-    ($model:ty, $cfg:expr, $info:expr) => {
+    ($model:ty, $cfg:expr, $info:expr) => {{
+        let split = 3.min($cfg.params.len());
+
+        let core = &$cfg.params[..split];
+        let rest = &$cfg.params[split..];
+
         ModelOptimiser::with_stop_condition(
-            TKF92CostBuilder::new(
-                &$cfg.params[..3],
-                SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[3..].to_vec()),
-                $info,
-            )
-            .build()?,
+            TKF92CostBuilder::new(core, SubstModel::<$model>::new(&$cfg.freqs, rest), $info)
+                .build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
         .run()?
-    };
+    }};
 }
 
 macro_rules! subst_optimisation {
