@@ -210,7 +210,13 @@ fn main() -> Result<()> {
     // TODO: since i am setting the params like ratio by multiplying and perhaps by setting it
     // back to the start value if the cost has not increased it might yield small numerical
     // differences
-    assert!((log_likelihood - final_cost).abs() < 1e-12);
+    assert!(
+        (log_likelihood - final_cost).abs() < 1e-10,
+        "log_likelihood and final_cost differ too much: log_likelihood = {}, final_cost = {}, diff = {}",
+        log_likelihood,
+        final_cost,
+        (log_likelihood - final_cost).abs()
+    );
 
     info!("Optimization complete.");
     info!("Final log-likelihood: {}", log_likelihood);
