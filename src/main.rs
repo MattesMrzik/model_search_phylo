@@ -206,7 +206,11 @@ fn main() -> Result<()> {
             }
         }
     };
-    assert_eq!(log_likelihood, final_cost);
+
+    // TODO: since i am setting the params like ratio by multiplying and perhaps by setting it
+    // back to the start value if the cost has not increased it might yield small numerical
+    // differences
+    assert!((log_likelihood - final_cost).abs() < 1e-12);
 
     info!("Optimization complete.");
     info!("Final log-likelihood: {}", log_likelihood);
