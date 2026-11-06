@@ -205,7 +205,7 @@ fn main() -> Result<()> {
     // back to the start value if the cost has not increased it might yield small numerical
     // differences
     assert!(
-        (log_likelihood - final_cost).abs() < 1e-9,
+        (log_likelihood - final_cost).abs() < 1e-10,
         "log_likelihood and final_cost differ too much: log_likelihood = {}, final_cost = {}, diff = {}",
         log_likelihood,
         final_cost,
@@ -238,4 +238,3 @@ fn main() -> Result<()> {
 
     Ok(())
 }
-
