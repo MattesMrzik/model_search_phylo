@@ -6,8 +6,8 @@ use ftail::Ftail;
 use log::LevelFilter;
 use ntimestamp::Timestamp;
 
-use phylo::evolutionary_models::FrequencyOptimisation;
-use phylo::optimisers::StopCondition;
+use phyne::evolutionary_models::FrequencyOptimisation;
+use phyne::optimisers::StopCondition;
 
 use anyhow::{Context, Result};
 
@@ -64,12 +64,12 @@ pub struct Cli {
     pub model: SubstModelId,
 
     /// Sequence evolution model parameters.
-    #[arg(short = 'p', long, value_name = "MODEL_PARAMS", num_args = 0..)]
-    pub params: Vec<f64>,
+    // #[arg(short = 'p', long, value_name = "MODEL_PARAMS", num_args = 0..)]
+    // pub params: Vec<f64>,
 
     /// Sequence evolution model stationary frequencies
-    #[arg(short = 'f', long, value_name = "FREQUENCIES", num_args = 0..)]
-    pub freqs: Vec<f64>,
+    // #[arg(short = 'f', long, value_name = "FREQUENCIES", num_args = 0..)]
+    // pub freqs: Vec<f64>,
 
     /// Frequency optimisation method: fixed, empirical, estimated
     #[arg(
@@ -124,14 +124,12 @@ pub struct Config {
     pub seq_file: PathBuf,
     pub input_tree: PathBuf,
     pub model: SubstModelId,
-    pub params: Vec<f64>,
-    pub freqs: Vec<f64>,
+    // pub params: Vec<f64>,
+    // pub freqs: Vec<f64>,
     pub freq_opt: FrequencyOptimisation,
     pub gap_handling: GapHandling,
     pub stop_condition: StopCondition,
     pub prng_seed: Option<u64>,
-    #[allow(dead_code)]
-    pub no_timestamp: bool,
     #[allow(dead_code)]
     pub log_level: LevelFilter,
 }
@@ -172,13 +170,12 @@ impl Config {
             seq_file: cli.seq_file,
             input_tree: cli.tree_file,
             model: cli.model,
-            params: cli.params,
-            freqs: cli.freqs,
+            // params: cli.params,
+            // freqs: cli.freqs,
             freq_opt: cli.freq_opt,
             gap_handling: cli.gap_handling,
             stop_condition: StopCondition::epsilon(cli.epsilon),
             prng_seed: cli.prng_seed,
-            no_timestamp: cli.no_timestamp,
             log_level: cli.log_level,
         })
     }

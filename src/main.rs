@@ -6,18 +6,16 @@ use clap::Parser;
 use log::info;
 use serde::Serialize;
 
-use phylo::alphabets::{Alphabet, DNA_ALPHABET, PROTEIN_ALPHABET};
-use phylo::likelihood::{ModelSearchCost, TreeSearchCost};
-use phylo::optimisers::ModelOptimiser;
-use phylo::phylo_info::PhyloInfoBuilder;
-use phylo::pip_model::{PIPCostBuilder, PIPModel};
-use phylo::random::DefaultGenerator;
-use phylo::substitution_models::{
+use phyne::alphabets::{Alphabet, DNA_ALPHABET, PROTEIN_ALPHABET};
+use phyne::likelihood::{ModelSearchCost, TreeSearchCost};
+use phyne::optimisers::ModelOptimiser;
+use phyne::phylo_info::PhyloInfoBuilder;
+use phyne::pip_model::{PIPCostBuilder, PIPModel};
+use phyne::random::DefaultGenerator;
+use phyne::substitution_models::{
     dna_models::*, protein_models::*, SubstModel, SubstitutionCostBuilder,
 };
-use phylo::tkf_model::{
-    TKF91CostBuilder, TKF91IndelCostBuilder, TKF92CostBuilder, TKF92IndelCostBuilder,
-};
+use phyne::tkf_model::{TKF91IndelModel, TKF92IndelModel, TKFCostBuilder, TKFIndelCostBuilder};
 
 mod cli;
 use crate::cli::{Cli, Config, GapHandling as Gap, SubstModelId};
@@ -57,8 +55,7 @@ macro_rules! run_model_search {
 macro_rules! pip_optimisation {
     ($model:ty, $cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            PIPCostBuilder::new(PIPModel::<$model>::new(&$cfg.freqs, &$cfg.params), $info)
-                .build()?,
+            PIPCostBuilder::new(PIPModel::<$model>::default(), $info).build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
@@ -67,11 +64,14 @@ macro_rules! pip_optimisation {
 }
 
 macro_rules! tkf91_optimisation {
-    ($model:ty, $cfg:expr, $info:expr) => {
+    ($model:ty, $cfg:expr, $info:expr) => {{
+        // let split = 2.min($cfg.params.len());
+        // let core = &$cfg.params[..split];
+        // let rest = &$cfg.params[split..];
         ModelOptimiser::with_stop_condition(
-            TKF91CostBuilder::new(
-                &$cfg.params[..2],
-                SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[2..].to_vec()),
+            TKFCostBuilder::new(
+                SubstModel::<$model>::default(),
+                TKF91IndelModel::default(),
                 $info,
             )
             .build()?,
@@ -79,15 +79,15 @@ macro_rules! tkf91_optimisation {
             $cfg.stop_condition,
         )
         .run()?
-    };
+    }};
 }
 
 macro_rules! tkf92_optimisation {
-    ($model:ty, $cfg:expr, $info:expr) => {
+    ($model:ty, $cfg:expr, $info:expr) => {{
         ModelOptimiser::with_stop_condition(
-            TKF92CostBuilder::new(
-                &$cfg.params[..3],
-                SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params[3..].to_vec()),
+            TKFCostBuilder::new(
+                SubstModel::<$model>::default(),
+                TKF92IndelModel::default(),
                 $info,
             )
             .build()?,
@@ -95,17 +95,13 @@ macro_rules! tkf92_optimisation {
             $cfg.stop_condition,
         )
         .run()?
-    };
+    }};
 }
 
 macro_rules! subst_optimisation {
     ($model:ty, $cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            SubstitutionCostBuilder::new(
-                SubstModel::<$model>::new(&$cfg.freqs, &$cfg.params),
-                $info,
-            )
-            .build()?,
+            SubstitutionCostBuilder::new(SubstModel::<$model>::default(), $info).build()?,
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
@@ -116,7 +112,7 @@ macro_rules! subst_optimisation {
 macro_rules! tkf91_indel_optimisation {
     ($cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            TKF91IndelCostBuilder::new(&$cfg.params, $info).build()?,
+            TKFIndelCostBuilder::new(TKF91IndelModel::default(), $info).build(),
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
@@ -127,7 +123,7 @@ macro_rules! tkf91_indel_optimisation {
 macro_rules! tkf92_indel_optimisation {
     ($cfg:expr, $info:expr) => {
         ModelOptimiser::with_stop_condition(
-            TKF92IndelCostBuilder::new(&$cfg.params, $info).build()?,
+            TKFIndelCostBuilder::new(TKF92IndelModel::default(), $info).build(),
             $cfg.freq_opt,
             $cfg.stop_condition,
         )
@@ -204,7 +200,17 @@ fn main() -> Result<()> {
             }
         }
     };
-    assert_eq!(log_likelihood, final_cost);
+
+    // TODO: since i am setting the params like ratio by multiplying and perhaps by setting it
+    // back to the start value if the cost has not increased it might yield small numerical
+    // differences
+    assert!(
+        (log_likelihood - final_cost).abs() < 1e-9,
+        "log_likelihood and final_cost differ too much: log_likelihood = {}, final_cost = {}, diff = {}",
+        log_likelihood,
+        final_cost,
+        (log_likelihood - final_cost).abs()
+    );
 
     info!("Optimization complete.");
     info!("Final log-likelihood: {}", log_likelihood);
@@ -232,3 +238,4 @@ fn main() -> Result<()> {
 
     Ok(())
 }
+
